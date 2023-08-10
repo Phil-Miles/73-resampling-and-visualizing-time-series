@@ -5,7 +5,8 @@ import matplotlib.dates as mdates
 tesla = pd.read_csv('TESLA Search Trend vs Price.csv')
 bitcoin_search = pd.read_csv('Bitcoin Search Trend.csv')
 bitcoin_price = pd.read_csv('Daily Bitcoin Price.csv')
-benefits = pd.read_csv('UE Benefits Search vs UE Rate 2004-20.csv')
+benefits_19 = pd.read_csv('UE Benefits Search vs UE Rate 2004-19.csv')
+benefits_20 = pd.read_csv('UE Benefits Search vs UE Rate 2004-20.csv')
 
 # [1] describe the dataframes
 # # get the max, min, mean values
@@ -33,7 +34,8 @@ bitcoin_price.dropna(inplace=True)
 tesla.MONTH = pd.to_datetime(tesla.MONTH)
 bitcoin_search.MONTH = pd.to_datetime(bitcoin_search.MONTH)
 bitcoin_price.DATE = pd.to_datetime(bitcoin_price.DATE)
-benefits.MONTH = pd.to_datetime(benefits.MONTH)
+benefits_19.MONTH = pd.to_datetime(benefits_19.MONTH)
+benefits_20.MONTH = pd.to_datetime(benefits_20.MONTH)
 
 
 # [4] resample bitcoin_price daily data to monthly data
@@ -58,7 +60,7 @@ years = mdates.YearLocator()
 months = mdates.MonthLocator()
 years_fmt = mdates.DateFormatter('%Y')
 
-plt.figure(figsize=(14,8), dpi=120)
+plt.figure(figsize=(14, 8), dpi=120)
 plt.title('Tesla Web Search vs Price', fontsize=18)
 plt.xticks(fontsize=14, rotation=45)
 
@@ -79,5 +81,78 @@ ax1.set_xlim([tesla.MONTH.min(), tesla.MONTH.max()])
 
 ax1.plot(tesla.MONTH, tesla.TSLA_USD_CLOSE, color='#E6232E', linewidth=3)
 ax2.plot(tesla.MONTH, tesla.TSLA_WEB_SEARCH, color='skyblue', linewidth=3)
+
+plt.show()
+
+# [7] BTC chart
+plt.figure(figsize=(14, 8), dpi=120)
+plt.title('Bitcoin News Search vs Resampled Price')
+plt.xticks(fontsize=14, rotation=45)
+
+ax1 = plt.gca()
+ax2 = ax1.twinx()
+
+ax1.set_ylabel('BRC Price', color='#F08F2E', fontsize=14)
+ax2.set_ylabel('Seatch Trend', color='skyblue', fontsize=14)
+
+ax1.xaxis.set_major_locator(years)
+ax1.xaxis.set_major_formatter(years_fmt)
+ax1.xaxis.set_minor_locator(months)
+
+# proveri ovo
+ax1.set_ylim(bottom=0, top=15000)
+ax1.set_xlim([bitcoin_price_monthly.index.min(), bitcoin_price_monthly.index.max()])
+
+# different linestyles and markers
+ax1.plot(bitcoin_price_monthly.index, bitcoin_price_monthly.CLOSE, color='#F08F2E', linewidth=3, linestyle='--')
+ax2.plot(bitcoin_price_monthly.index, bitcoin_search.BTC_NEWS_SEARCH, color='skyblue', linewidth=3, marker='o')
+
+plt.show()
+
+# [8] Unemployment chart
+plt.figure(figsize=(14, 8), dpi=120)
+plt.title('Monthly Search of "Unemployment Benefits" in the U.S. vs the U/E Rate', fontsize=18)
+plt.yticks(fontsize=14)
+plt.xticks(fontsize=14, rotation=45)
+
+ax1 = plt.gca()
+ax2 = ax1.twinx()
+
+ax1.set_ylabel('FRED U/E Rate', color='purple', fontsize=14)
+ax2.set_ylabel('Search Trend', color='skyblue', fontsize=14)
+
+ax1.xaxis.set_major_locator(years)
+ax1.xaxis.set_major_formatter(years_fmt)
+ax1.xaxis.set_minor_locator(months)
+
+ax1.set_ylim(bottom=3, top=10.5)
+ax1.set_xlim(benefits_19.MONTH.min(), benefits_19.MONTH.max())
+
+# show the grid lines as dark grey lines
+ax1.grid(color='grey', linestyle='--')
+
+# calculate the rolling average over a 6 month window
+roll_df = benefits_19[['UE_BENEFITS_WEB_SEARCH', 'UNRATE']].rolling(window=6).mean()
+# set up the dataset
+ax1.plot(benefits_19.MONTH, roll_df.UNRATE, 'purple', linewidth=3, linestyle='--')
+ax2.plot(benefits_19.MONTH, roll_df.UE_BENEFITS_WEB_SEARCH, 'skyblue', linewidth=3)
+
+plt.show()
+
+plt.figure(figsize=(14, 8), dpi=120)
+plt.yticks(fontsize=14)
+plt.xticks(fontsize=14, rotation=45)
+plt.title('Monthly US "Unemployment Benefits" Web Search vs UNRATE incl 2020', fontsize=18)
+
+ax1 = plt.gca()
+ax2 = ax1.twinx()
+
+ax1.set_ylabel('FRED U/E Rate', color='purple', fontsize=16)
+ax1.set_ylabel('Search Trend', color='skyblue', fontsize=16)
+
+ax1.set_xlim([benefits_20.MONTH.min(), benefits_20.MONTH.max()])
+
+ax1.plot(benefits_20.MONTH, benefits_20.UNRATE, 'purple', linewidth=3)
+ax2.plot(benefits_20.MONTH, benefits_20.UE_BENEFITS_WEB_SEARCH, 'skyblue', linewidth=3)
 
 plt.show()
